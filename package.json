@@ -7,5 +7,9 @@
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "puppeteer": "^23.6.1",
+    "puppeteer-core": "^23.6.1"
   }
 }
