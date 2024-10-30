@@ -31,34 +31,32 @@ export class CostcoScraper {
             await context.overridePermissions(this.config.category.url, ['geolocation']);
             console.log('Geolocation permissions configured');
 
-            // 2. Set up request interceptors before navigation
-            await this.setupInterceptors(page, productData);
-
-            // 3. Navigate to page and wait for load
+            // 2. Navigate to page first
             console.log('Navigating to target URL:', this.config.category.url);
             await page.goto(this.config.category.url, {
                 waitUntil: 'networkidle2',
                 timeout: 30000
             });
-            // Wait for 2 seconds after page load
-            await page.waitForNetworkIdle({ timeout: 2000 });
             console.log('Successfully navigated to target URL');
 
-            // 4. Handle ZIP code entry
+            // 3. Handle ZIP code entry
             await this.handleZipCode(page);
 
-            // Add page refresh before scrolling
-            console.log('Refreshing page to capture fresh GraphQL responses...');
-            await page.reload({
-                waitUntil: "domcontentloaded",
-                timeout: 30000
-            });
-            console.log('Page refreshed successfully');
-            // Add delay after page reload to ensure content loads
-            await new Promise(resolve => setTimeout(resolve, 3000)); // Give the page time to fully load
-            await page.waitForSelector('.items-grid', { timeout: 10000 }); // Wait for product grid to become visible
+            // 4. Set up request interceptors after ZIP code
+            await this.setupInterceptors(page, productData);
 
-            // 5. Start scrolling and capturing data
+            // 5. Refresh page and wait
+            console.log('Refreshing page to capture fresh GraphQL responses...');
+            await page.reload({ waitUntil: 'networkidle2' });
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            console.log('Page refreshed successfully');
+
+            // 6. Pre-scroll checks
+            console.log('=== Pre-Scroll Checks ===');
+            console.log('Current URL:', await page.url());
+            console.log('Product data array length:', productData.length);
+
+            // 7. Start scrolling
             const scrollConfig = {
                 scrollStep: 800,
                 maxNoNewItemsAttempts: 3,
@@ -67,9 +65,6 @@ export class CostcoScraper {
             };
             console.log('Starting automatic scroll to capture all items...');
             await ScrollUtils.scrollAndCapture(page, productData, scrollConfig);
-
-            // 6. Save captured data
-            await FileUtils.saveDataToFile(productData, this.config.category);
 
             return productData;
 
@@ -125,7 +120,7 @@ export class CostcoScraper {
                     if (json?.data?.items) {
                         // Log first item structure for debugging
                         if (productData.length === 0) {
-                            console.log('First item structure:', JSON.stringify(json.data.items[0], null, 2));
+                            console.log('First item structure captured:', {/*JSON.stringify(json.data.items[0], null, 2)*/ });
                         }
 
                         productData.push(...json.data.items);
