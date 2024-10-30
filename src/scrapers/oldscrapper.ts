@@ -194,8 +194,8 @@ const runScrapper = async () => {
 
 // run the scrapper
 runScrapper()
-    .then((data) => {
-        console.log('Scrapping completed:', data)
+    .then(() => {
+        console.log('Scrapping completed')
     })
     .catch((error) => {
         console.error(`Error running scrapper:`, error)
