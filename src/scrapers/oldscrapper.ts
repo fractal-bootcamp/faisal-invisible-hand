@@ -196,7 +196,11 @@ const runScrapper = async () => {
 runScrapper()
     .then(() => {
         console.log('Scrapping completed')
+        // Add process.exit() to terminate the Node.js process after completion
+        process.exit(0)
     })
     .catch((error) => {
         console.error(`Error running scrapper:`, error)
+        // Exit with error code 1 if there was an error
+        process.exit(1)
     })

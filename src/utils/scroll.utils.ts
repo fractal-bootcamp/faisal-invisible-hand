@@ -16,15 +16,12 @@ export class ScrollUtils {
     ): Promise<number> {
         let lastHeight = 0;
         let noNewItemsCount = 0;
-        let previousItemCount = 0;
+        let previousItemCount = productData.length;
 
         while (true) {
-            // Get current scroll height
             const currentHeight = await page.evaluate('document.documentElement.scrollHeight');
 
-            // Check if we've reached the bottom and no new items
             if (currentHeight === lastHeight) {
-                // Also check if we got new items
                 if (previousItemCount === productData.length) {
                     noNewItemsCount++;
                 } else {
@@ -41,21 +38,16 @@ export class ScrollUtils {
 
             previousItemCount = productData.length;
 
-            // Scroll down
             await page.evaluate(`window.scrollBy(0, ${config.scrollStep})`);
-            // Wait for content to load
             await new Promise(r => setTimeout(r, config.scrollDelay));
 
-            // Update last height and log progress
             lastHeight = currentHeight as number;
             console.log(`Scrolling... Current items: ${productData.length}`);
         }
 
-        // Final scroll to top to trigger any remaining requests
         await page.evaluate('window.scrollTo(0, 0)');
         await new Promise(r => setTimeout(r, 2000));
 
-        console.log(`Scrolling complete. Total items captured: ${productData.length}`);
         return productData.length;
     }
 } 
