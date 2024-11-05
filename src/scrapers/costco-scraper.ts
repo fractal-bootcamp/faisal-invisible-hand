@@ -49,8 +49,8 @@ export class CostcoScraper {
             console.log('Refreshing page to capture fresh GraphQL responses...');
             try {
                 await page.goto(this.config.category.url, {
-                    waitUntil: 'networkidle0',
-                    timeout: 30000
+                    waitUntil: 'domcontentloaded',
+                    timeout: 300
                 });
                 console.log('Page refreshed successfully');
             } catch (error) {
@@ -58,7 +58,7 @@ export class CostcoScraper {
             }
 
             // Wait for content to load
-            await page.waitForSelector('.ItemCard', { timeout: 30000 })
+            await page.waitForSelector('.ItemCard')
                 .catch(() => console.warn('Timeout waiting for ItemCards'));
 
             // 6. Pre-scroll checks
@@ -68,9 +68,9 @@ export class CostcoScraper {
 
             // 7. Start scrolling
             const scrollConfig = {
-                scrollStep: 300,
-                maxNoNewItemsAttempts: 3,
-                scrollDelay: 1500,
+                scrollStep: 1000,
+                maxNoNewItemsAttempts: 5,
+                scrollDelay: 400,
                 ...this.config.scroll
             };
 
@@ -97,7 +97,7 @@ export class CostcoScraper {
         console.log('Attempting to enter ZIP code:', this.config.zipcode);
         try {
             await page.waitForSelector('input[placeholder="Enter ZIP code"]', {
-                timeout: 5000,
+                timeout: 2000,
                 visible: true
             });
 
