@@ -17,6 +17,13 @@ export interface ScrollConfig {
     scrollDelay: number
 }
 
+export interface ScrollState {
+    height: number;
+    noNewItemsCount: number;
+    previousItemCount: number;
+    productCount: number;
+}
+
 // Main categories
 export type CostcoMainCategory = 'Health & Personal Care' // add other main categories as needed
 
