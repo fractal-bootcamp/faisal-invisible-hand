@@ -1,96 +1,121 @@
 import { Page } from 'puppeteer';
-import type { ScrollConfig } from '../types/costco.types';
+import type { ScrollConfig, ScrollState } from '../types/costco.types';
 
 export class ScrollUtils {
     /**
-     * Scrolls through a page and captures product data
-     * @param page - Puppeteer Page object to scroll
-     * @param productData - Array to store captured product data
-     * @param config - Configuration for scroll behavior
-     * @returns Number of products captured
+     * Pure function to check if scrolling should continue
+     */
+    private static shouldContinueScrolling(
+        state: ScrollState,
+        config: ScrollConfig,
+        visibleItems: number
+    ): boolean {
+        if (state.noNewItemsCount < config.maxNoNewItemsAttempts) return true;
+        return visibleItems > state.productCount;
+    }
+
+    /**
+     * Pure function to calculate new scroll state
+     */
+    private static getNextScrollState(
+        currentState: ScrollState,
+        newHeight: number,
+        productCount: number
+    ): ScrollState {
+        const isHeightUnchanged = newHeight === currentState.height;
+        const isProductCountUnchanged = productCount === currentState.previousItemCount;
+
+        return {
+            height: newHeight,
+            noNewItemsCount: isHeightUnchanged && isProductCountUnchanged
+                ? currentState.noNewItemsCount + 1
+                : 0,
+            previousItemCount: productCount,
+            productCount
+        };
+    }
+
+    /**
+     * Pure function to get page metrics
+     */
+    private static async getPageMetrics(page: Page): Promise<{ height: number; visibleItems: number }> {
+        const height = await page.evaluate(() => Math.max(
+            document.documentElement.scrollHeight,
+            document.body.scrollHeight,
+            document.documentElement.clientHeight
+        ));
+
+        const visibleItems = await page.evaluate(() =>
+            document.querySelectorAll('.ItemCard').length
+        );
+
+        return { height, visibleItems };
+    }
+
+    /**
+     * Performs a single scroll operation
+     */
+    private static async performScroll(
+        page: Page,
+        scrollStep: number,
+        scrollDelay: number
+    ): Promise<void> {
+        const microScrollStep = 100;
+        const steps = Math.ceil(scrollStep / microScrollStep);
+
+        for (let i = 0; i < steps; i++) {
+            await page.evaluate((step) => {
+                window.scrollBy({
+                    top: step,
+                    behavior: 'smooth'
+                });
+            }, microScrollStep);
+            // Wait for 100ms between scroll steps
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        // Wait for configured delay between scroll operations
+        await new Promise(resolve => setTimeout(resolve, scrollDelay));
+    }
+
+    /**
+     * Main scroll capture function with reduced side effects
      */
     static async scrollAndCapture(
         page: Page,
-        productData: any[],
-        config: ScrollConfig
+        productData: readonly any[],
+        config: Readonly<ScrollConfig>
     ): Promise<number> {
-        let lastHeight = 0;
-        let noNewItemsCount = 0;
-        let previousItemCount = productData.length;
-
         console.log('Starting scroll capture process...');
 
+        let state: ScrollState = {
+            height: 0,
+            noNewItemsCount: 0,
+            previousItemCount: productData.length,
+            productCount: productData.length
+        };
+
         while (true) {
-            // Get current scroll height with more reliable method
-            const currentHeight = await page.evaluate(() => {
-                return Math.max(
-                    document.documentElement.scrollHeight,
-                    document.body.scrollHeight,
-                    document.documentElement.clientHeight
-                );
-            });
+            // Get current metrics
+            const { height, visibleItems } = await this.getPageMetrics(page);
 
-            // Log scroll progress with more detail
-            console.log(`Scroll progress - Height: ${currentHeight}px, Items: ${productData.length}`);
+            // Log progress (side effect isolated to logging)
+            console.log(`Scroll progress - Height: ${height}px, Items: ${state.productCount}`);
 
-            // Check if we've reached the bottom
-            if (currentHeight === lastHeight) {
-                if (previousItemCount === productData.length) {
-                    noNewItemsCount++;
-                    console.log(`No new items detected (attempt ${noNewItemsCount}/${config.maxNoNewItemsAttempts})`);
-                } else {
-                    // Reset counter if we got new items
-                    noNewItemsCount = 0;
-                }
+            // Calculate new state
+            state = this.getNextScrollState(state, height, productData.length);
 
-                if (noNewItemsCount >= config.maxNoNewItemsAttempts) {
-                    // Additional check for lazy-loaded content
-                    const visibleItems = await page.evaluate(() =>
-                        document.querySelectorAll('.ItemCard').length
-                    );
-
-                    if (visibleItems > productData.length) {
-                        console.log(`Mismatch detected: Visible items (${visibleItems}) > Captured items (${productData.length})`);
-                        noNewItemsCount = 0;
-                        continue;
-                    }
-
-                    console.log('Reached end of page - no new items detected');
-                    break;
-                }
-            } else {
-                noNewItemsCount = 0;
+            // Check if should continue
+            if (!this.shouldContinueScrolling(state, config, visibleItems)) {
+                console.log('Reached end of page - no new items detected');
+                break;
             }
 
-            previousItemCount = productData.length;
-
-            // Implement smooth scrolling with intermediate steps
-            const scrollStep = config.scrollStep;
-            const currentScroll = await page.evaluate(() => window.pageYOffset);
-
-            // Scroll in smaller increments
-            for (let i = 0; i < scrollStep; i += 100) {
-                await page.evaluate((step) => {
-                    window.scrollBy({
-                        top: step,
-                        behavior: 'smooth'
-                    });
-                }, 100);
-
-                // Small delay between each micro-scroll
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-
-            // Wait for network idle and potential data loading
-            await new Promise(resolve => setTimeout(resolve, config.scrollDelay));
-
-            // Wait for potential GraphQL responses
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            lastHeight = currentHeight;
+            // Perform scroll operation
+            await this.performScroll(page, config.scrollStep, config.scrollDelay);
         }
 
-        // Scroll back to top
+        // Return to top (necessary side effect)
         await page.evaluate(() => {
             window.scrollTo({
                 top: 0,
