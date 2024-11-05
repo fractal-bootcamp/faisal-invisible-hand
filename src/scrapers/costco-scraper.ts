@@ -47,9 +47,18 @@ export class CostcoScraper {
 
             // 5. Refresh page and wait
             console.log('Refreshing page to capture fresh GraphQL responses...');
-            await page.reload({ waitUntil: 'networkidle2' });
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            console.log('Page refreshed successfully');
+            try {
+                await page.reload({
+                    waitUntil: 'networkidle0',
+                    timeout: 60000 // Increased timeout
+                });
+                console.log('Page refreshed successfully');
+            } catch (error) {
+                console.error('Page refresh timeout, continuing with current state:', error);
+            }
+
+            // Wait for network to be idle
+            await new Promise(resolve => setTimeout(resolve, 5000));
 
             // 6. Pre-scroll checks
             console.log('=== Pre-Scroll Checks ===');
@@ -65,6 +74,11 @@ export class CostcoScraper {
             };
             console.log('Starting automatic scroll to capture all items...');
             await ScrollUtils.scrollAndCapture(page, productData, scrollConfig);
+            console.log(`Scrolling complete. Total items captured: ${productData.length}`);
+
+            // Save data using existing FileUtils
+            await FileUtils.saveDataToFile(productData, this.config.category);
+            console.log('Data saved successfully');
 
             return productData;
 
@@ -120,7 +134,7 @@ export class CostcoScraper {
                     if (json?.data?.items) {
                         // Log first item structure for debugging
                         if (productData.length === 0) {
-                            console.log('First item structure captured:', {/*JSON.stringify(json.data.items[0], null, 2)*/ });
+                            //console.log('First item structure captured:', JSON.stringify(json.data.items[0], null, 2));
                         }
 
                         productData.push(...json.data.items);
