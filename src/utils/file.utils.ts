@@ -21,28 +21,31 @@ export class FileUtils {
 
             // Get current date in ET
             const date = new Date();
-            const etDate = new Intl.DateTimeFormat('en-US', {
+            const formatter = new Intl.DateTimeFormat('en-US', {
                 timeZone: 'America/New_York',
                 year: 'numeric',
                 month: '2-digit',
                 day: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit',
-                hour12: false,
-                timeZoneName: 'short'
-            }).format(date);
+                hour12: false
+            });
 
-            // Format timestamp
-            const match = etDate.match(/(\d{2})\/(\d{2})\/(\d{4}),?\s+(\d{2}):(\d{2})/);
-            if (!match) {
-                throw new Error('Failed to parse date format');
-            }
+            // Get formatted parts
+            const parts = formatter.formatToParts(date);
+            const timestamp = parts.reduce((acc, part) => {
+                switch (part.type) {
+                    case 'month': return acc + part.value;
+                    case 'day': return acc + part.value;
+                    case 'year': return acc + part.value + '-';
+                    case 'hour': return acc + part.value + ':';
+                    case 'minute': return acc + part.value;
+                    default: return acc;
+                }
+            }, '');
 
-            const [, month, day, year, hours, minutes] = match;
-            const timestamp = `${year}${month}${day}-${hours}:${minutes}-ET`;
-
-            // Create filename
-            const filename = `costco-${this.sanitizeForFilename(category.main)}-${category.sub}-${timestamp}.json`;
+            // Create filename in new format: timestamp-ET-category-details.json (e.g. 11052024-13:30-ET-category-details.json)
+            const filename = `${timestamp}-ET-costco-${this.sanitizeForFilename(category.main)}-${category.sub}.json`;
             const filepath = join(dataDir, filename);
 
             // Save file
