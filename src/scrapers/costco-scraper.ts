@@ -68,9 +68,9 @@ export class CostcoScraper {
 
             // 7. Start scrolling
             const scrollConfig = {
-                scrollStep: 300, // Reduced step size for smoother scrolling
-                maxNoNewItemsAttempts: 5, // Increased attempts
-                scrollDelay: 2000, // Increased delay between scrolls
+                scrollStep: 300,
+                maxNoNewItemsAttempts: 3,
+                scrollDelay: 1500,
                 ...this.config.scroll
             };
 

@@ -26,7 +26,6 @@ export class ScrollUtils {
                 return Math.max(
                     document.documentElement.scrollHeight,
                     document.body.scrollHeight,
-                    document.documentElement.clientHeight
                 );
             });
 
