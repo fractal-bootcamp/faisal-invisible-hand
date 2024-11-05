@@ -50,20 +50,19 @@ export class CostcoScraper {
             try {
                 await page.goto(this.config.category.url, {
                     waitUntil: 'domcontentloaded',
-                    timeout: 300
+                    timeout: 3000
                 });
                 console.log('Page refreshed successfully');
             } catch (error) {
                 console.warn('Page refresh timeout, continuing with current state');
             }
 
-            // Wait for content to load
-            await page.waitForSelector('.ItemCard')
-                .catch(() => console.warn('Timeout waiting for ItemCards'));
+            // // Wait for content to load
+            // await page.waitForSelector('.ItemCard')
+            //     .catch(() => console.warn('Timeout waiting for ItemCards'));
 
             // 6. Pre-scroll checks
             console.log('=== Pre-Scroll Checks ===');
-            console.log('Current URL:', await page.url());
             console.log('Product data array length:', productData.length);
 
             // 7. Start scrolling
