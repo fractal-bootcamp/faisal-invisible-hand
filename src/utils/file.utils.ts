@@ -28,12 +28,17 @@ export class FileUtils {
                 day: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit',
-                hour12: false
+                hour12: false,
+                timeZoneName: 'short'
             }).format(date);
 
             // Format timestamp
-            const [month, day, year, time] = etDate.split(/[/, ]/);
-            const [hours, minutes] = time.split(':');
+            const match = etDate.match(/(\d{2})\/(\d{2})\/(\d{4}),?\s+(\d{2}):(\d{2})/);
+            if (!match) {
+                throw new Error('Failed to parse date format');
+            }
+
+            const [, month, day, year, hours, minutes] = match;
             const timestamp = `${year}${month}${day}-${hours}:${minutes}-ET`;
 
             // Create filename

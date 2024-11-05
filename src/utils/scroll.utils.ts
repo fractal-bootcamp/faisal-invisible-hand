@@ -18,12 +18,25 @@ export class ScrollUtils {
         let noNewItemsCount = 0;
         let previousItemCount = productData.length;
 
+        console.log('Starting scroll capture process...');
+
         while (true) {
-            const currentHeight = await page.evaluate('document.documentElement.scrollHeight');
+            // Get current scroll height with more reliable method
+            const currentHeight = await page.evaluate(() => {
+                return Math.max(
+                    document.documentElement.scrollHeight,
+                    document.body.scrollHeight,
+                    document.documentElement.clientHeight
+                );
+            });
+
+            // Log scroll progress with more detail
+            console.log(`Scroll progress - Height: ${currentHeight}px, Items: ${productData.length}`);
 
             if (currentHeight === lastHeight) {
                 if (previousItemCount === productData.length) {
                     noNewItemsCount++;
+                    console.log(`No new items detected (attempt ${noNewItemsCount}/${config.maxNoNewItemsAttempts})`);
                 } else {
                     noNewItemsCount = 0;
                 }
