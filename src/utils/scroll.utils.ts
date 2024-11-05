@@ -26,21 +26,35 @@ export class ScrollUtils {
                 return Math.max(
                     document.documentElement.scrollHeight,
                     document.body.scrollHeight,
+                    document.documentElement.clientHeight
                 );
             });
 
             // Log scroll progress with more detail
             console.log(`Scroll progress - Height: ${currentHeight}px, Items: ${productData.length}`);
 
+            // Check if we've reached the bottom
             if (currentHeight === lastHeight) {
                 if (previousItemCount === productData.length) {
                     noNewItemsCount++;
                     console.log(`No new items detected (attempt ${noNewItemsCount}/${config.maxNoNewItemsAttempts})`);
                 } else {
+                    // Reset counter if we got new items
                     noNewItemsCount = 0;
                 }
 
                 if (noNewItemsCount >= config.maxNoNewItemsAttempts) {
+                    // Additional check for lazy-loaded content
+                    const visibleItems = await page.evaluate(() =>
+                        document.querySelectorAll('.ItemCard').length
+                    );
+
+                    if (visibleItems > productData.length) {
+                        console.log(`Mismatch detected: Visible items (${visibleItems}) > Captured items (${productData.length})`);
+                        noNewItemsCount = 0;
+                        continue;
+                    }
+
                     console.log('Reached end of page - no new items detected');
                     break;
                 }
@@ -50,15 +64,39 @@ export class ScrollUtils {
 
             previousItemCount = productData.length;
 
-            await page.evaluate(`window.scrollBy(0, ${config.scrollStep})`);
-            await new Promise(r => setTimeout(r, config.scrollDelay));
+            // Implement smooth scrolling with intermediate steps
+            const scrollStep = config.scrollStep;
+            const currentScroll = await page.evaluate(() => window.pageYOffset);
 
-            lastHeight = currentHeight as number;
-            console.log(`Scrolling... Current items: ${productData.length}`);
+            // Scroll in smaller increments
+            for (let i = 0; i < scrollStep; i += 100) {
+                await page.evaluate((step) => {
+                    window.scrollBy({
+                        top: step,
+                        behavior: 'smooth'
+                    });
+                }, 100);
+
+                // Small delay between each micro-scroll
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            // Wait for network idle and potential data loading
+            await new Promise(resolve => setTimeout(resolve, config.scrollDelay));
+
+            // Wait for potential GraphQL responses
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            lastHeight = currentHeight;
         }
 
-        await page.evaluate('window.scrollTo(0, 0)');
-        await new Promise(r => setTimeout(r, 2000));
+        // Scroll back to top
+        await page.evaluate(() => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
 
         return productData.length;
     }
