@@ -48,17 +48,18 @@ export class CostcoScraper {
             // 5. Refresh page and wait
             console.log('Refreshing page to capture fresh GraphQL responses...');
             try {
-                await page.reload({
+                await page.goto(this.config.category.url, {
                     waitUntil: 'networkidle0',
-                    timeout: 60000 // Increased timeout
+                    timeout: 30000
                 });
                 console.log('Page refreshed successfully');
             } catch (error) {
-                console.error('Page refresh timeout, continuing with current state:', error);
+                console.warn('Page refresh timeout, continuing with current state');
             }
 
-            // Wait for network to be idle
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            // Wait for content to load
+            await page.waitForSelector('.ItemCard', { timeout: 30000 })
+                .catch(() => console.warn('Timeout waiting for ItemCards'));
 
             // 6. Pre-scroll checks
             console.log('=== Pre-Scroll Checks ===');
@@ -67,11 +68,12 @@ export class CostcoScraper {
 
             // 7. Start scrolling
             const scrollConfig = {
-                scrollStep: 800,
-                maxNoNewItemsAttempts: 3,
-                scrollDelay: 1500,
+                scrollStep: 300, // Reduced step size for smoother scrolling
+                maxNoNewItemsAttempts: 5, // Increased attempts
+                scrollDelay: 2000, // Increased delay between scrolls
                 ...this.config.scroll
             };
+
             console.log('Starting automatic scroll to capture all items...');
             await ScrollUtils.scrollAndCapture(page, productData, scrollConfig);
             console.log(`Scrolling complete. Total items captured: ${productData.length}`);
