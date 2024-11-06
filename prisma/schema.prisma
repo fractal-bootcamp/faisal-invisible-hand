@@ -13,6 +13,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Product model represents a product with its core details and relationships
 model Product {
   id                String        @id
   name              String
@@ -24,29 +25,38 @@ model Product {
   imageAltText      String?
   evergreenUrl      String?
   price             Price?
+  priceId           String?
   itemMedicare      String?
   dietaryAttributes Dietary[]
   availability      Availability?
-  priceId           String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 }
 
+// Dietary model tracks dietary attributes/restrictions for products
 model Dietary {
-  id        String  @id @default(uuid())
+  id        String   @id @default(uuid())
   name      String // is this the attribute name?
   productId String
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
+// Availability model tracks product stock and availability information
 model Availability {
-  id                 String  @id @default(uuid())
+  id                 String   @id @default(uuid())
   available          Boolean
   stockLevel         String
   retailerLocationId String?
   availabilityScore  Float?
-  productId          String  @unique
-  product            Product @relation(fields: [productId], references: [id])
+  productId          String   @unique
+  product            Product  @relation(fields: [productId], references: [id])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
+// Price model tracks current and original pricing for products
 model Price {
   id        String    @id @default(uuid())
   price     Float // Current price or discounted price
@@ -54,8 +64,11 @@ model Price {
   discount  Discount?
   productId String    @unique
   product   Product   @relation(fields: [productId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
+// Discount model tracks various types of discounts and promotions
 model Discount {
   id                String    @id @default(uuid())
   amount            Float? // Amount discounted
@@ -68,4 +81,6 @@ model Discount {
   promotionEndDate  DateTime? // End date of promotion
   priceId           String    @unique
   price             Price     @relation(fields: [priceId], references: [id])
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
