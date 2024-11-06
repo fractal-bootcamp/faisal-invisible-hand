@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id                String        @id
+  name              String
+  size              String
+  productId         String
+  brandName         String
+  brandId           String
+  imageUrl          String
+  imageAltText      String?
+  evergreenUrl      String?
+  price             Price?
+  itemMedicare      String?
+  dietaryAttributes Dietary[]
+  availability      Availability?
+  priceId           String?
+}
+
+model Dietary {
+  id        String  @id @default(uuid())
+  name      String // is this the attribute name?
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Availability {
+  id                 String  @id @default(uuid())
+  available          Boolean
+  stockLevel         String
+  retailerLocationId String?
+  availabilityScore  Float?
+  productId          String  @unique
+  product            Product @relation(fields: [productId], references: [id])
+}
+
+model Price {
+  id        String    @id @default(uuid())
+  price     Float // Current price or discounted price
+  fullPrice Float // Original price
+  discount  Discount?
+  productId String    @unique
+  product   Product   @relation(fields: [productId], references: [id])
+}
+
+model Discount {
+  id                String    @id @default(uuid())
+  amount            Float? // Amount discounted
+  percent           Float? // Discount percentage
+  couponCode        String? // Associated coupon code
+  onSale            Boolean // Is the product on sale?
+  retailerPromotion Boolean // Is the promotion from a retailer?
+  buyOneGetOne      Boolean // Is the promotion a buy one get one?
+  cpgCoupon         Boolean // Is the promotion a cpg coupon (consumer packaged goods)?
+  promotionEndDate  DateTime? // End date of promotion
+  priceId           String    @unique
+  price             Price     @relation(fields: [priceId], references: [id])
+}
