@@ -1,4 +1,90 @@
+//// Filtered Data ////
+
 [
+    {
+        "id": "items_283-20029311",
+        "name": "Nature Made Extra Strength Magnesium 400 mg, 180 Softgels",
+        "size": "each",
+        "productId": "20029311",
+        "brandName": "nature made",
+        "brandId": "42413",
+        "evergreenUrl": "20029311-nature-made-magnesium-oxide-400-mg-softgels-180-ct",
+        "dietary": {
+            "mlDietaryAttributes": [
+                "glutenFree"
+            ],
+        },
+        "itemMedicare": null,
+        "availability": {
+            "available": true,
+        },
+        "viewSection": {
+            "itemImage": {
+                "altText": null,
+                "url": "https://d2lnr5mha7bycj.cloudfront.net/product-image/file/large_d4d8b6e1-fc6c-445c-89a9-bd9f8ffbc987.webp",
+            },
+            "trackingProperties": {
+                "low_stock_label": false,
+                "element_details": {
+                    "element_type": "item",
+                    "retailer_location_id": "283",
+                    "element_id": "items_283-20029311",
+                    "item_tags": []
+                },
+                "on_sale_ind": {
+                    "on_sale": false,
+                    "retailer": true,
+                    "buy_one_get_one": true,
+                    "cpg_coupon": false
+                },
+                "external_sku_id": null,
+                "item_id": "668308214",
+                "stock_level": "highly_in_stock",
+                "availability_score": 0.9663658,
+                "low_stock_variant": "none",
+                "product_category_name": "Magnesium Supplements",
+            },
+            "retailerReferenceCodeString": "1308590",
+            "nameStringFormatted": {
+                "id": "2b9bcb3b",
+                "sections": [
+                    {
+                        "id": "d531c2d9",
+                        "name": "bodymedium2",
+                    }
+                ],
+            },
+        },
+        "tags": [],
+        "comboPromotions": [],
+        "price": {
+            "viewSection": {
+                "badge": {
+                    "genericSaleLabelString": "Sale",
+                    "trackingProperties": {
+                        "badge_type": "retailer_promotion",
+                        "promotion_id": "",
+                        "discount_policy_id": "",
+                        "promotion_candidate_id": "ae129daa-c816-4b04-b793-3dc24e1df5d5",
+                        "save_amount": "$3.50 off; limit 15",
+                        "promotion_type": null
+                    },
+                },
+                "itemCard": {
+                    "priceString": "$15.20",
+                    "plainFullPriceString": "$18.70",
+                },
+                "itemDetails": {
+                    "saleDisclaimerString": "Ends Nov 17 - Add 1 to qualify for deal (max 15 per order)",
+                },
+            },
+        }
+    }
+]
+
+
+//// All Data ////
+{/*[
     {
         "id": "items_283-20029311",
         //"itemLoadId": null,
@@ -350,4 +436,4 @@
         },
         //"__typename": "ItemsItemPrice"
     }
-]
+]*/}
