@@ -21,7 +21,7 @@ export class CostcoScraper {
 
     async runScrapper(): Promise<CostcoProduct[]> {
         console.log('Starting scraper...');
-        const browser = await puppeteer.launch({ headless: false });
+        const browser = await puppeteer.launch({ headless: true });
         const page = await browser.newPage();
         const productData: CostcoProduct[] = [];
 
