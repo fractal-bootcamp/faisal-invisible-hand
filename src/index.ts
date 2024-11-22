@@ -1,7 +1,7 @@
 import { CostcoScraper } from './scrapers/costco-scraper';
 
 
-async function main() {
+export async function main() {
     // Create scraper with specific category and URL
     const scraper = new CostcoScraper({
         zipcode: '11201',
